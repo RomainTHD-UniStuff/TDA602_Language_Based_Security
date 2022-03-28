@@ -11,10 +11,11 @@ public class Store {
     private final static Map<String, Integer> products = new HashMap<>();
 
     static {
-        products.put("candies", 1);
+        products.put("book", 100);
+        products.put("candy", 1);
         products.put("car", 30000);
         products.put("pen", 40);
-        products.put("book", 100);
+        products.put("plane", 30001);
     }
 
     /**
@@ -42,6 +43,6 @@ public class Store {
             return products.get(product);
         }
 
-        throw new IllegalArgumentException("Product " + product + " is not in store");
+        return null;
     }
 }
