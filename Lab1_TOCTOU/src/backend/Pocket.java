@@ -3,6 +3,7 @@ package backend;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileLock;
 
 public class Pocket {
     /**
@@ -17,7 +18,10 @@ public class Pocket {
      */
     public Pocket() {
         try {
-            this._file = new RandomAccessFile(new File("res/backend/pocket.txt"), "rw");
+            this._file = new RandomAccessFile(
+                new File("res/backend/pocket.txt"),
+                "rw"
+            );
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
@@ -27,13 +31,11 @@ public class Pocket {
      * Adds a product to the pocket.
      * @param product product name to add to the pocket (e.g. "car")
      */
-    public void addProduct(String product) {
-        try {
-            this._file.seek(this._file.length());
-            this._file.writeBytes(product + '\n');
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+    public void addProduct(String product) throws IOException {
+        FileLock lock = this._file.getChannel().lock();
+        this._file.seek(this._file.length());
+        this._file.writeBytes(product + '\n');
+        lock.release();
     }
 
     /**

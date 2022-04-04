@@ -2,6 +2,7 @@ import backend.Pocket;
 import backend.Store;
 import backend.Wallet;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 public class ShoppingCart {
@@ -9,7 +10,9 @@ public class ShoppingCart {
 
     private static void print(Wallet wallet, Pocket pocket) {
         System.out.println("\n");
-        System.out.println("Your current balance is: " + wallet.getBalance() + " credits.");
+        System.out.println("Your current balance is: " +
+                           wallet.getBalance() +
+                           " credits.");
         System.out.println(Store.asString());
         System.out.println("Your current pocket is:\n" + pocket.getPocket());
     }
@@ -32,6 +35,8 @@ public class ShoppingCart {
     }
 
     public static void main(String[] args) {
+        final boolean VULNERABILITY_CORRECTED = true;
+
         Wallet wallet = new Wallet();
         Pocket pocket = new Pocket();
         scanner = new Scanner(System.in);
@@ -54,21 +59,37 @@ public class ShoppingCart {
                 continue;
             }
 
-            int balance = wallet.getBalance();
+            boolean addProduct = false;
 
-            delay();
-            /*
-            Step 1: start buying a candy, credits = 30000
-            Step 2: buy the car, credits = 0
-            Step 3: resume buying the candy, credits = 29999
-            */
-
-            if (price > balance) {
-                System.out.println("You don't have enough credits to buy this product.");
-                continue;
+            if (VULNERABILITY_CORRECTED) {
+                try {
+                    addProduct = wallet.safeWithdraw(price);
+                } catch (IOException | InterruptedException e) {
+                    System.err.println("Couldn't unlock file");
+                }
             } else {
-                wallet.setBalance(balance - price);
-                pocket.addProduct(product);
+                int balance = wallet.getBalance();
+
+                // Artificial delay
+                delay();
+
+                if (price <= balance) {
+                    wallet.setBalance(balance - price);
+                    addProduct = true;
+                }
+            }
+
+            if (addProduct) {
+                try {
+                    pocket.addProduct(product);
+                } catch (IOException e) {
+                    System.err.println("Couldn't unlock file");
+                }
+            } else {
+                System.out.println(
+                    "You don't have enough credits to buy this product."
+                );
+                continue;
             }
 
             // Just to print everything again...

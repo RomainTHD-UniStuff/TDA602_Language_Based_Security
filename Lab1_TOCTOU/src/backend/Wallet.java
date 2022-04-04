@@ -3,8 +3,12 @@ package backend;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.channels.FileLock;
+import java.util.Scanner;
 
 public class Wallet {
+    private static Scanner scanner = null;
+
     /**
      * The RandomAccessFile of the wallet file
      */
@@ -17,10 +21,21 @@ public class Wallet {
      */
     public Wallet() {
         try {
-            this._file = new RandomAccessFile(new File("res/backend/wallet.txt"), "rw");
+            this._file = new RandomAccessFile(
+                new File("res/backend/wallet.txt"),
+                "rw"
+            );
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private static void delay() {
+        System.out.println("(waiting for input to resume...)");
+        if (scanner == null) {
+            scanner = new Scanner(System.in);
+        }
+        scanner.nextLine();
     }
 
     /**
@@ -59,5 +74,31 @@ public class Wallet {
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public synchronized boolean safeWithdraw(int valueToWithdraw) throws IOException, InterruptedException {
+        FileLock lock;
+
+        while ((lock = _file.getChannel().tryLock()) == null) {
+            // We could use `lock()` instead of `tryLock()`, but it is not
+            //  really user-friendly as it will block the program.
+            System.err.println(
+                "Wallet is locked, waiting for it to be unlocked..."
+            );
+            Thread.sleep(1000);
+        }
+
+        int balance = getBalance();
+
+        delay();
+
+        if (balance < valueToWithdraw) {
+            return false;
+        } else {
+            setBalance(balance - valueToWithdraw);
+        }
+
+        lock.release();
+        return true;
     }
 }
