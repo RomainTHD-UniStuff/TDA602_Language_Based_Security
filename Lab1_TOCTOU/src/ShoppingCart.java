@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.Scanner;
 
 public class ShoppingCart {
+    public static final boolean VULNERABILITY_CORRECTED = true;
+
     private static Scanner scanner;
 
     private static void print(Wallet wallet, Pocket pocket) {
@@ -35,8 +37,6 @@ public class ShoppingCart {
     }
 
     public static void main(String[] args) {
-        final boolean VULNERABILITY_CORRECTED = true;
-
         Wallet wallet = new Wallet();
         Pocket pocket = new Pocket();
         scanner = new Scanner(System.in);

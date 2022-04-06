@@ -11,6 +11,10 @@ Simply run `make` in the root directory.
 A utility script called `run.sh` is provided, as well as a `run.bat` for
 Windows.
 
+You might get some artificial delay in the output, to let you the time to try
+everything. If you want to disable the patch, you can set the
+variable `VULNERABILITY_CORRECTED` to false in `ShoppingCart.java`.
+
 # Part 1
 
 - What is the shared resource? Who is sharing it?
