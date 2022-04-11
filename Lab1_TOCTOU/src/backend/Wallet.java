@@ -91,14 +91,14 @@ public class Wallet {
         int balance = getBalance();
 
         delay();
+        boolean ok = false;
 
-        if (balance < valueToWithdraw) {
-            return false;
-        } else {
+        if (balance >= valueToWithdraw) {
             setBalance(balance - valueToWithdraw);
+            ok = true;
         }
 
         lock.release();
-        return true;
+        return ok;
     }
 }
