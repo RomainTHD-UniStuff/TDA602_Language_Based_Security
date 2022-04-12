@@ -1,4 +1,4 @@
-.PHONY: all resetFiles clean
+.PHONY: all resetFiles reset clean
 
 all: res/backend/pocket.txt res/backend/wallet.txt
 	javac src/backend/*.java -sourcepath src -d build
@@ -14,5 +14,7 @@ resetFiles:
 	rm -f res/backend/wallet.txt
 	rm -f res/backend/pocket.txt
 
-clean: resetFiles
+reset: | resetFiles res/backend/wallet.txt res/backend/pocket.txt ;
+
+clean: reset
 	rm -rf build
