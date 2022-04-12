@@ -68,6 +68,9 @@ public class ShoppingCart {
                     System.err.println("Couldn't unlock file");
                 }
             } else {
+                // Will not work anymore due to the modification of modifiers
+                // from public to private
+                /*
                 int balance = wallet.getBalance();
 
                 // Artificial delay
@@ -77,6 +80,7 @@ public class ShoppingCart {
                     wallet.setBalance(balance - price);
                     addProduct = true;
                 }
+                 */
             }
 
             if (addProduct) {

@@ -31,7 +31,7 @@ public class Wallet {
     }
 
     private static void delay() {
-        System.out.println("(waiting for input to resume...)");
+        System.out.println("Artificial delay (waiting for input to resume...)");
         if (scanner == null) {
             scanner = new Scanner(System.in);
         }
@@ -55,7 +55,7 @@ public class Wallet {
      * Sets a new balance in the wallet
      * @param newBalance new balance to write in the wallet
      */
-    public void setBalance(int newBalance) {
+    private void setBalance(int newBalance) {
         String str = Integer.valueOf(newBalance).toString() + '\n';
         try {
             this._file.setLength(0);
