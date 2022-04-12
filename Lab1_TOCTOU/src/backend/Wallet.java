@@ -42,27 +42,19 @@ public class Wallet {
      * Gets the wallet balance.
      * @return The content of the wallet file as an integer
      */
-    public int getBalance() {
-        try {
-            this._file.seek(0);
-            return Integer.parseInt(this._file.readLine());
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+    public int getBalance() throws IOException, IllegalArgumentException {
+        this._file.seek(0);
+        return Integer.parseInt(this._file.readLine());
     }
 
     /**
      * Sets a new balance in the wallet
      * @param newBalance new balance to write in the wallet
      */
-    private void setBalance(int newBalance) {
+    private void setBalance(int newBalance) throws IOException {
         String str = Integer.valueOf(newBalance).toString() + '\n';
-        try {
-            this._file.setLength(0);
-            this._file.writeBytes(str);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+        this._file.setLength(0);
+        this._file.writeBytes(str);
     }
 
     /**
@@ -76,7 +68,8 @@ public class Wallet {
         }
     }
 
-    public synchronized boolean safeWithdraw(int valueToWithdraw) throws IOException, InterruptedException {
+    public synchronized boolean safeWithdraw(int valueToWithdraw)
+        throws IOException, IllegalArgumentException, InterruptedException {
         FileLock lock;
 
         while ((lock = _file.getChannel().tryLock()) == null) {
@@ -88,17 +81,20 @@ public class Wallet {
             Thread.sleep(1000);
         }
 
-        int balance = getBalance();
-
-        delay();
         boolean ok = false;
+        try {
+            int balance = getBalance();
 
-        if (balance >= valueToWithdraw) {
-            setBalance(balance - valueToWithdraw);
-            ok = true;
+            delay();
+
+            if (balance >= valueToWithdraw) {
+                setBalance(balance - valueToWithdraw);
+                ok = true;
+            }
+        } finally {
+            lock.release();
         }
 
-        lock.release();
         return ok;
     }
 }

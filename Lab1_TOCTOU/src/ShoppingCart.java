@@ -11,10 +11,19 @@ public class ShoppingCart {
     private static Scanner scanner;
 
     private static void print(Wallet wallet, Pocket pocket) {
+        int balance;
+        try {
+            balance = wallet.getBalance();
+        } catch (IOException | IllegalArgumentException e) {
+            balance = -1;
+        }
+
         System.out.println("\n");
-        System.out.println("Your current balance is: " +
-                           wallet.getBalance() +
-                           " credits.");
+        System.out.println(
+            "Your current balance is: " +
+            balance +
+            " credits."
+        );
         System.out.println(Store.asString());
         System.out.println("Your current pocket is:\n" + pocket.getPocket());
     }
