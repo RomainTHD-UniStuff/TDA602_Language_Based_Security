@@ -72,12 +72,30 @@ public class Wallet {
 }
 ```
 
+The function `safeWithdraw` is set as synchronized, so it is guaranteed that in
+a concurrent context, only one thread will be able to access it at a time. This
+acts as a per-thread locking mechanism.
+
 WARNING: Note that this code only works on Windows systems. Unix systems, on the
 other hand, don't enforce file locks at the OS level. A solution could be to
 create a file lock ourselves containing the PID of the process that is currently
 holding the lock. This is however a dangerous solution, as a process crashing
 without releasing the lock will definitively prevent other processes from
 acquiring it.
+
+With this implementation, the scenario above raise this output:
+
+![P1](res/report/part2_P1.png)
+
+*P1, buys a candy and takes some time to process the transaction*
+
+![](res/report/part2_P2.png)
+
+*P2, tries to buy a car while P1 is still processing the candy transaction*
+
+In a real-world scenario, one might want to replace this active fetching of the
+balance with a passive one, by using `lock()` instead of `tryLock()`. This will
+however freeze the program.
 
 - Other API suffering from the same problem
 
