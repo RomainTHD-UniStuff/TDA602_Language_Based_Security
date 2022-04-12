@@ -5,9 +5,11 @@ all: res/backend/pocket.txt res/backend/wallet.txt
 	javac src/ShoppingCart.java -sourcepath src -d build
 
 res/backend/pocket.txt:
+	mkdir -p res/backend
 	touch res/backend/pocket.txt
 
 res/backend/wallet.txt:
+	mkdir -p res/backend
 	echo 30000 > res/backend/wallet.txt
 
 resetFiles:
