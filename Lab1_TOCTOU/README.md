@@ -1,5 +1,3 @@
-Romain THEODET
-
 # Part 0
 
 - How to compile
