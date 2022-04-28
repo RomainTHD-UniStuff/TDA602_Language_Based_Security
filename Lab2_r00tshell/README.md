@@ -49,7 +49,10 @@ stack content with `x/50x $sp`.
 
 `3` encoded in ASCII is 0x33 in hexadecimal, hence all these 33.
 However, using the memory layout above, we can see that the saved frame
-pointer is 0x08048241 and the the return address 0x40007099.
+pointer is 0x08048241 and the the return address 0x40007099. We can also
+see that the location in the stack is near 0xbffffb40, so we will jump
+a bit earlier to make sure we aim correctly. Because of some environment
+variables, this address could indeed change slightly.
 
 ![Stack content with highlights](./assets/stack_content_highlighted.jpg)
 
@@ -58,10 +61,12 @@ pointer, we should be able to overwrite the return address to return in
 the stack and execute our shellcode as if it was "real" code.
 
 We will use a NOP slide to aim wide and then a payload, the shellcode.
-This shellcode will set the RID from the EID, effectively putting
-ourselves as root. This works only because the sticky bit is enabled
-for this file; any program without the sticky bit will (obviously)
-not be able to switch to root.
+This shellcode will set the real UID and the real group ID from the
+EUID, effectively putting ourselves as root. This only works because the
+sticky bit is enabled for this file; any program without the sticky bit
+will (obviously) not be able to switch to root. Without these
+instructions, the shell open would have the same rights as the user who
+executed it, i.e. not root, which isn't really interresting.
 
 The following script will send the right shellcode for us, used like
 this: `addhostalias $(python exploit.py)`
@@ -92,4 +97,33 @@ permanent with a backdoor. With root access, you can create a new user
 with root access and a known password, expose a SSH access, create a
 file with sticky flag, etc.
 
-# 2 - Discussion and countermeasures
+# 2 - Countermeasures
+
+There are several countermeasures to avoid these buffer overflows.
+
+At a language level, some languages are less affected than other by
+buffer overflows. Higher-level languages (Java, C#, Python...) usually
+checks for out-of-bounds access, thus avoiding buffer overflows as
+opposed to lower-level languages (mainly C and C++). It should be noted
+though that modern low-level languages like Rust tends to think more
+carefully about buffer overflows using "smarter" memory management.
+
+If C / C++ still need to be used, most of the vulnerable standard
+library functions have a safer equivalent: `fgets` instead of `gets`,
+`strcpy_s` or `strlcpy` over `strcpy`, etc.
+
+Programs can also be compiled with constant values that shouldn't
+normally be override. These constants are called canaries, and while
+they don't technically prevent buffer overflows they still make it
+harder, because now you need to aim more precisely and override this
+canary with the right value.
+
+Obfuscation can also be used at compile-time by shuffling around
+variable declaration, thus making the original source code less useful
+for stack overflow documentation purpose.
+
+On an OS point of view, ASLR can be used to randomize the address space.
+The stack can also be marked as non executable with the NX bit. With
+these two features, buffer overflows become really limited.Still, return
+to libc attacks can be achieved, by jumping back to other legitimate
+functions.
