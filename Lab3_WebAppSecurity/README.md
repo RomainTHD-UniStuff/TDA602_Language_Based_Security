@@ -21,7 +21,7 @@ request.send(null);
 The server receives a request with a body similar to the following one:
 
 ```json
-{ cookie: 'PHPSESSID=4l9v89l9s2vkog36aoef350pd4' }
+{ "cookie": "PHPSESSID=4l9v89l9s2vkog36aoef350pd4" }
 ```
 
 Then, you just have to wait for an admin to leak its cookie, and with
