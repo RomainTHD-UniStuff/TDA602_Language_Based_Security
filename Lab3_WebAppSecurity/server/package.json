@@ -1,0 +1,15 @@
+{
+    "name": "lbs-lab3-server",
+    "version": "1.0.0",
+    "description": "Language-Based Security, lab 3 server",
+    "main": "main.js",
+    "scripts": {
+        "start": "node main.js"
+    },
+    "keywords": [],
+    "author": "RomainTHD",
+    "license": "AGPL-3.0-or-later",
+    "dependencies": {
+        "express": "^4.18.1"
+    }
+}
