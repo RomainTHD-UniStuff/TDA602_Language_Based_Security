@@ -51,6 +51,12 @@ HTTP headers can also be used to limit the leak if a XSS is exploited.
 Content Security Policy can prevent the client from fetching external
 websites and allowing only its own domain.
 
+XSS using iframes can be avoided by setting the `sandbox` attribute,
+which will add some restrictions to what the embedded website can do.
+Without it, an iframe is able to open popups, submit forms, run scripts,
+send requests as if it was from the same origin, etc. This same origin
+policy is especially useful if the CSP headers explained above are set.
+
 Finally, even with a XSS vulnerability, cookie theft can be avoided by
 marking the cookie as HTTP only, which makes it unreadable by a JS
 script.
