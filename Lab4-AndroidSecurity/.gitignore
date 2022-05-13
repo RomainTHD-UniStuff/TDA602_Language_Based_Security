@@ -1,2 +1,3 @@
 local.properties
-.gradle/
+unsolved/MACLocation/.gradle
+unsolved/MACIntent/.gradle
