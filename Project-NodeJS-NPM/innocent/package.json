@@ -1,0 +1,15 @@
+{
+    "name": "innocent",
+    "version": "1.0.0",
+    "description": "Language-Based Security project, innocent app",
+    "main": "main.js",
+    "scripts": {
+        "start": "node main.js"
+    },
+    "keywords": [],
+    "author": "RomainTHD",
+    "license": "AGPL-3.0-or-later",
+    "dependencies": {
+        "vulnerable": "file:../vulnerable"
+    }
+}

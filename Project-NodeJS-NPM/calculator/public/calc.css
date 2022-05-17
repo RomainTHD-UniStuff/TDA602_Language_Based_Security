@@ -1,0 +1,11 @@
+* {
+    font-family: sans-serif;
+    font-size: large;
+}
+body {
+    margin-top: 5vmax;
+    margin-left: 5vmax;
+}
+table {
+    border-spacing: 1vmax;
+}

@@ -1,0 +1,15 @@
+{
+    "name": "vulnerable",
+    "version": "1.0.0",
+    "description": "Language-Based Security project, vulnerable app",
+    "main": "main.js",
+    "scripts": {
+        "start": "node main.js"
+    },
+    "keywords": [],
+    "author": "RomainTHD",
+    "license": "AGPL-3.0-or-later",
+    "dependencies": {
+        "dotenv": "^16.0.1"
+    }
+}
