@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
-const innocent = require("innocent");
+const realCalculator = require("innocent");
 
 const app = express();
 const port = 3001;
@@ -21,7 +21,7 @@ app.use((req, res, next) => {
 
 app.post("/", (req, res) => {
     const {left, op, right} = req.body;
-    const result = innocent.calc(left, op, right);
+    const result = realCalculator.calc(left, op, right);
     res.send({result});
 });
 

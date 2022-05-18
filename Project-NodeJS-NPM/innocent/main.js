@@ -1,4 +1,4 @@
-const vulnerable = require("vulnerable");
+const advancedFunctions = require("vulnerable");
 
 function calc(left, op, right) {
     switch (op) {
@@ -11,7 +11,7 @@ function calc(left, op, right) {
         case "/":
             return left / right;
         default:
-            return vulnerable.getFunction(op)(left, right);
+            return advancedFunctions.getFunction(op)(left, right);
     }
 }
 
