@@ -44,13 +44,13 @@ the same version or different ones.
 
 ```
 package
-    |- dependency A
-    |   |- sub-dependency 1
-    |   |- sub-dependency 2
-    |
-    |- dependency B
-        |- sub-dependency 2
-        |- sub-dependency 3
+    ├─ dependency A
+    │   ├─ sub-dependency 1
+    │   └─ sub-dependency 2
+    │
+    └─ dependency B
+        ├─ sub-dependency 2
+        └─ sub-dependency 3
 ```
 
 Because of this, if one dependency is out-of-date, unmaintained or
