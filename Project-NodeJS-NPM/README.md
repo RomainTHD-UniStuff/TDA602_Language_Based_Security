@@ -53,8 +53,23 @@ package
         └─ sub-dependency 3
 ```
 
+Dependencies version are also frozen and stored in a separate file
+
+```json
+{
+    "node_modules/accepts": {
+        "version": "1.3.8"
+    }, "node_modules/array-flatten": {
+        "version": "1.1.1"
+    }, "node_modules/body-parser": {
+        "version": "1.20.0"
+    }
+}
+```
+
 Because of this, if one dependency is out-of-date, unmaintained or
-vulnerable, this huge chain of implicit trust gets broken.
+vulnerable, this huge chain of implicit trust gets broken, and since the
+versions are frozen these packages cannot be easily updated.
 
 Worse, on average, a project needs 79 third-party packages from 39
 different maintainers, which create huge opportunities for attackers.
