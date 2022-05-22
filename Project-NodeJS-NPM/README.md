@@ -35,6 +35,14 @@ attack vector could be huge database queries which will slow the whole
 system, as opposed to languages like Java or Python for example where
 "true" parallelism is achievable.
 
+Additionnally, NodeJS and JavaScript don't really have any permission
+system, which means that any script has the same access as the main
+script.
+
+Finally, NodeJS relies on a global mutable state modifiable from every
+script, with the use of global variables like `process`, `window`,
+`global`, etc.
+
 # Problems with NPM
 
 The way NPM works is that every dependency it needs is downloaded per
