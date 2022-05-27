@@ -38,7 +38,6 @@ discreet, as the user clearly sees its browser opening.
 
 # 2 - Malicious intents
 
-
 In the MACLocation app, the `DatabaseActivity.onCreate` method will, as
 its name suggests, create the app. It will look at the caller intent and
 act differently depending on its action. Here, if the field
@@ -85,3 +84,40 @@ our own implementation of `lbs.lab.maclocation.Item`, and then
 exfiltrate it like we did previously in the first part.
 
 # 3 - Protections and mitigations
+
+There could be several ways to protect against these threats, on several
+levels.
+
+## 3.1 - Against permission escape: part 1
+
+First, the permissions could be implemented per intent, not per app. If
+an app A calls an app B, and B has the internet permission but not A, A
+is still able to access internet through B. However, a defense would be
+for the intent from A to B to require some kind of permission, which
+would force A to declare the internet permission. This would still be
+pretty challenging though, as we need to be sure which permissions are
+used, otherwise if B suddently adds the camera permission it would break
+A even though it doesn't use it.
+
+## 3.2 - Against data leak: part 2
+
+A way to avoid data leak would be to somehow track the data from B to A.
+If the data of B is leaked back to A without a kind of approval, then
+the data would be made unusable by the system. This is still a rough
+idea though, as this would probably lead to many challenge to face.
+
+Maybe we could also rank the data importance, like the information flow
+security lectures we had. A high (important) app would only be able to
+share its data to other high apps, and low apps would not be able to
+fetch this high data. Or, to continue with data tracking, low apps could
+be allowed as long as there isn't an information flow from high data to
+low data, ie the data use would be severely restricted.
+
+Intents should also use a kind of signature, to avoid spoofing its
+origin. This is already something that can - and should - be done, but
+the Android kernel should go even further. What we saw earlier is that
+to deserialize the data fetched we needed to create our own
+implementation of the data object. This shouldn't be allowed, and a
+serialized object should only be deserializable by the implementation
+in its own app, not by any third-party app, even if the implementation
+is the same.
