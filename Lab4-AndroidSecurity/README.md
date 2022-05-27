@@ -49,7 +49,7 @@ right action, the activity won't check which app the intent is coming
 from and will exfiltrate all its database to the external app through
 the result intent.
 
-The intent code is the following one:
+The malicious intent code is the following one:
 
 ```java
 // Activity intent
@@ -67,6 +67,10 @@ i.setType("lbs.lab.maclocation.DatabaseActivity");
 i.putExtra(ITEM_ACTION, GET_ITEMS_ACTION);
 ```
 
+Once the data retrieved, we need to deserialize it by creating our own
+implementation of `lbs.lab.maclocation.Item`, and then exfiltrate it
+like we did previously in the first part.
+
 There are currently a few checks in `DatabaseActivity`:
 - The MIME data type should be set to
 `"lbs.lab.maclocation.DatabaseActivity"`, which is easy to set
@@ -74,19 +78,25 @@ There are currently a few checks in `DatabaseActivity`:
 we could guess it using the source code or a decompiler
 - The caller activity should be named `MainActivity`, easy to spoof
 
-This last check is the one which should be changed. Instead of checking
-the value of `getShortClassName()` to compare the activity names, it
-should use `getClassName()`, that will differentiate
-`lbs.lab.maclocation.MainActivity` and `lbs.lab.macintent.MainActivity`.
+This last check is the one which should be changed in order to fix this
+vulnerability. Instead of checking the value of `getShortClassName()` to
+compare the activity names, it should use `getClassName()`, that will
+differentiate `lbs.lab.maclocation.MainActivity` and
+`lbs.lab.macintent.MainActivity`.
 
-Finally, once the data retrieved, we need to deserialize it by creating
-our own implementation of `lbs.lab.maclocation.Item`, and then
-exfiltrate it like we did previously in the first part.
+Moreover, in the Android manifest, `DatabaseActivity` is wrongly marked
+as `exported`, which makes it accessible to any third-party app through
+an intent.
 
 # 3 - Protections and mitigations
 
 There could be several ways to protect against these threats, on several
 levels.
+
+On a more general note though, explicit intents should be avoided and
+should even maybe be completely discarded. Apps should pass through an
+app chooser and not hardwire the target in the source code, which is
+error prone and can lead to several attacks like we saw previously.
 
 ## 3.1 - Against permission escape: part 1
 
@@ -98,6 +108,10 @@ would force A to declare the internet permission. This would still be
 pretty challenging though, as we need to be sure which permissions are
 used, otherwise if B suddently adds the camera permission it would break
 A even though it doesn't use it.
+
+The solution above could also be completed using a stacktrace of chained
+events, to avoid the confused app B to send a third intent that will
+look legitimate for the third (or same) app.
 
 ## 3.2 - Against data leak: part 2
 
@@ -113,7 +127,14 @@ fetch this high data. Or, to continue with data tracking, low apps could
 be allowed as long as there isn't an information flow from high data to
 low data, ie the data use would be severely restricted.
 
-Intents should also use a kind of signature, to avoid spoofing its
+Related to this suggestion, critical informations related to banking or
+health for example should probably be locked behind a password, such
+that any legitimate intent would have this token in memory while
+external explicit intents wouldn't be able to unlock the data. It goes
+without saying that critical activities should also not be publicly
+exposed in the Android manifest.
+
+Intents could also use a kind of signature, to avoid spoofing its
 origin. This is already something that can - and should - be done, but
 the Android kernel should go even further. What we saw earlier is that
 to deserialize the data fetched we needed to create our own
