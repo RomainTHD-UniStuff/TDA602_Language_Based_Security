@@ -19,6 +19,12 @@ In our example, the server received this:
 
 ![Server request](./assets/server_request_p1.png)
 
+This data is accessible by the app because it is its own data, and thus
+does not break sandboxing. It would be quite different for other kind
+of data though, since file system access require specific permissions
+and user interaction, and other apps database content are protected from
+access by other app thanks to sandboxing.
+
 On android and iOS, apps are sandboxed and heavily restricted, as
 opposed to desktop apps. If an app wants to access a private resource
 (camera, location, etc), it needs to be explicitely allowed to do so by
@@ -168,7 +174,12 @@ security lectures we had. A high (important) app would only be able to
 share its data to other high apps, and low apps would not be able to
 fetch this high data. Or, to continue with data tracking, low apps could
 be allowed as long as there isn't an information flow from high data to
-low data, ie the data use would be severely restricted.
+low data, ie the data use would be severely restricted. This is an
+interesting research topic, although currently there are no official
+support from Android. Still, some tools exist in "regular" Java, like
+Jif, or in other languages (JSFlow, LIO, etc), so an official
+implementation could come at some point with enough push from the
+community.
 
 Related to this suggestion, critical informations related to banking or
 health for example should probably be locked behind a password, such
