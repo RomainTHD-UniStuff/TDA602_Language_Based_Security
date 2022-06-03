@@ -23,7 +23,11 @@ This data is accessible by the app because it is its own data, and thus
 does not break sandboxing. It would be quite different for other kind
 of data though, since file system access require specific permissions
 and user interaction, and other apps database content are protected from
-access by other app thanks to sandboxing.
+access by other app thanks to sandboxing. It should however not be
+possible to send this data to a webserver through internet, since the
+app doesn't use the Internet permission, but by using a third-party app
+we can manage to exfiltrate this data. This kind of situation correspond
+to a confused deputy problem.
 
 On android and iOS, apps are sandboxed and heavily restricted, as
 opposed to desktop apps. If an app wants to access a private resource
@@ -147,16 +151,24 @@ should even maybe be completely discarded. Apps should pass through an
 app chooser and not hardwire the target in the source code, which is
 error prone and can lead to several attacks like we saw previously.
 
+For both parts, a more general solution could be the transition to a
+capability-based kernel, where the capability / key is an unforgeable
+token of authority refering to a list of rights and permissions. These
+confused deputy problems would then be no more, sicne if an app A calls
+an app B, B would use A's token and then the operation would be refused
+at the kernel level, while currently A uses B's identity to do some
+actions.
+
 ## 3.1 - Against permission escape: part 1
 
-First, the permissions could be implemented per intent, not per app. If
-an app A calls an app B, and B has the internet permission but not A, A
-is still able to access internet through B. However, a defense would be
-for the intent from A to B to require some kind of permission, which
-would force A to declare the internet permission. This would still be
-pretty challenging though, as we need to be sure which permissions are
-used, otherwise if B suddently adds the camera permission it would break
-A even though it doesn't use it.
+First, the Android API could implement permissions per intent, not per
+app. If an app A calls an app B, and B has the internet permission but
+not A, A is still able to access internet through B. However, a defense
+would be for the intent from A to B to require some kind of permission,
+which would force A to declare the internet permission. This would still
+be pretty challenging though, as we need to be sure which permissions
+are used, otherwise if B suddently adds the camera permission it would
+break A even though it doesn't use it.
 
 The solution above could also be completed using a stacktrace of chained
 events, to avoid the confused app B to send a third intent that will
@@ -179,14 +191,18 @@ interesting research topic, although currently there are no official
 support from Android. Still, some tools exist in "regular" Java, like
 Jif, or in other languages (JSFlow, LIO, etc), so an official
 implementation could come at some point with enough push from the
-community.
+community. The best implementation would probably to implement this at
+the kernel level, directly using memory mapping.
 
 Related to this suggestion, critical informations related to banking or
 health for example should probably be locked behind a password, such
 that any legitimate intent would have this token in memory while
 external explicit intents wouldn't be able to unlock the data. It goes
 without saying that critical activities should also not be publicly
-exposed in the Android manifest.
+exposed in the Android manifest. This is technically a recommandation,
+and cannot realistically be made mandatory by the platform, since it
+would be pretty hard to differentiate critical and legit information
+programmatically.
 
 Intents could also use a kind of signature, to avoid spoofing its
 origin. This is already something that can - and should - be done, but
