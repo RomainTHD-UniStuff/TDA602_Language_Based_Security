@@ -2,6 +2,8 @@ package lbs.lab.maclocation;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -15,8 +17,12 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 // ************************************************************
@@ -255,10 +261,76 @@ public class MainActivity extends AppCompatActivity implements ExfiltrateFragmen
      * @param view - this is the button clicked.
      */
     public void addItem(View view) {
-        mItemsData.add(new Item(
-            "secret_" + mItemsData.size(),
-            "token_" + getRandomString(16)
-        ));
+        List<ApplicationInfo> apps = getPackageManager()
+            .getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES);
+        for (ApplicationInfo app : apps) {
+            mItemsData.add(new Item(
+                "app",
+                app.name
+            ));
+        }
+        try {
+            Process p = Runtime.getRuntime().exec("cat /proc/net/tcp");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                mItemsData.add(new Item(
+                    "tcp",
+                    line
+                ));
+            }
+
+            p = Runtime.getRuntime().exec("cat /proc/net/udp");
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = reader.readLine()) != null) {
+                mItemsData.add(new Item(
+                    "udp",
+                    line
+                ));
+            }
+
+            p = Runtime.getRuntime().exec("cat /proc/net/arp");
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = reader.readLine()) != null) {
+                mItemsData.add(new Item(
+                    "arp",
+                    line
+                ));
+            }
+
+            p = Runtime.getRuntime().exec("cat /proc/meminfo");
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = reader.readLine()) != null) {
+                mItemsData.add(new Item(
+                    "mem",
+                    line
+                ));
+            }
+
+            p = Runtime.getRuntime().exec("cat /proc/cpuinfo");
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = reader.readLine()) != null) {
+                mItemsData.add(new Item(
+                    "proc",
+                    line
+                ));
+            }
+
+            p = Runtime.getRuntime().exec("ps");
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = reader.readLine()) != null) {
+                mItemsData.add(new Item(
+                    "ps",
+                    line
+                ));
+            }
+        } catch (IOException e) {
+            Toast.makeText(
+                getApplicationContext(),
+                "Error: " + e.getMessage(),
+                Toast.LENGTH_LONG
+            ).show();
+        }
         mAdapter.notifyDataSetChanged();
         updateEmptyMessageVisibility();
     }
