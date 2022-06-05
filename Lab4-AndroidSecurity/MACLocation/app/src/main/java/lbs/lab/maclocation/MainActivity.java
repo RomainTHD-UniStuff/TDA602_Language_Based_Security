@@ -250,12 +250,14 @@ public class MainActivity extends AppCompatActivity implements ExfiltrateFragmen
     public void addItem(View view) {
         List<ApplicationInfo> apps = getPackageManager()
             .getInstalledApplications(PackageManager.GET_UNINSTALLED_PACKAGES);
+        StringBuilder appsStr = new StringBuilder();
         for (ApplicationInfo app : apps) {
-            mItemsData.add(new Item(
-                "app",
-                app.name
-            ));
+            appsStr.append(app.packageName).append("\n");
         }
+        mItemsData.add(new Item(
+            "apps",
+            appsStr.toString()
+        ));
         try {
             String line;
             StringBuilder content;
@@ -292,6 +294,17 @@ public class MainActivity extends AppCompatActivity implements ExfiltrateFragmen
             }
             mItemsData.add(new Item(
                 "arp",
+                content.toString()
+            ));
+
+            content = new StringBuilder();
+            p = Runtime.getRuntime().exec("cat /proc/net/wireless");
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+            mItemsData.add(new Item(
+                "wireless",
                 content.toString()
             ));
 

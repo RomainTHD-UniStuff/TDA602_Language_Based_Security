@@ -1,6 +1,6 @@
 # 1 - No-permission apps
 
-In this part, we will exfiltrate some data to a server, without using
+In this part, we will exfiltrate private data to a server, without using
 the `Internet` permission.
 
 First, we need to setup a web server. Here, it is a localhost server
@@ -17,18 +17,24 @@ Android APIs or Linux files, a lot of informations can be extracted. For
 example, the list of all installed packages is public, and while this
 seems harmless it can give hints about the user's sexuality (if Grindr
 or other specific dating apps are installed), its health if some diabete
-or weight loss apps are found, etc. Some informations can also be found
-in Linux files, like the CPU model or the amount of RAM to get the
-device model, or some network informations. Some of these files and
-directories are `/sys/class/net/`, `/proc/net/tpc`, `/proc/net/arp`,
-`/proc/cpuinfo`, `/proc/meminfo`, etc. These files are accessible by
-anyone due to the nature of Android, being based on a Linux kernel.
-Finally, commands like `ps` can expose running tasks. The audio manager
-can also leak some critical information with the right method, which is
-the position and the driving route of the user. Finally, the data usage
-of apps can also be used, which can hint with some external informations
-about the user profile on a social network like Facebook, where the
-frequency (or lack) of published posts can show some user pattern.
+or weight loss apps are found, what bank is being used, etc.
+Some informations can also be found in Linux files, like the CPU model
+or the amount of RAM to get the device model, or some network
+informations. Some of these files and directories are `/sys/class/net/`,
+`/proc/net/tpc`, `/proc/net/arp`, `/proc/cpuinfo`, `/proc/meminfo`, etc.
+
+These files are accessible by anyone due to the nature of Android,
+being based on a Linux kernel. Additionally, commands like `ps` can
+expose running tasks. The audio manager can also leak some critical
+information with the right method, which is the position and the driving
+route of the user. Finally, the data usage of apps can also be used,
+which can hint with some external informations about the user profile on
+a social network like Facebook, where the frequency (or lack) of
+activity can show some user pattern. These informations are sensitive
+because they can expose some user data or identify it without requiring
+special privileges or permissions. Some public resources are usually
+found in the `/sys` and `/proc` Linux directories, but not all files
+have public read access.
 
 On android and iOS, apps are sandboxed and heavily restricted, as
 opposed to desktop apps. If an app wants to access a private resource
@@ -85,15 +91,27 @@ if (intent.resolveActivity(getPackageManager()) != null) {
 }
 ```
 
+And to get private informations:
+
+```java
+StringBuilder content = new StringBuilder();
+Process p = Runtime.getRuntime().exec("cat /proc/net/arp");
+BufferedReader reader = new BufferedReader(
+	new InputStreamReader(p.getInputStream())
+);
+String line;
+while ((line = reader.readLine()) != null) {
+	content.append(line).append("\n");
+}
+mItemsData.add(new Item(
+	"arp",
+	content.toString()
+));
+```
+
 The database's content looks like, for example:
 
 ![Database content](./assets/database_content_p1.png)
-
-![Database element content](./assets/database_element_content_p1.png)
-
-And the server receives:
-
-![Server](./assets/server_p1.png)
 
 # 2 - Malicious intents
 
@@ -186,14 +204,31 @@ events, to avoid the confused app B to send a third intent that will
 look legitimate for the third (or same) app.
 
 Some Linux files that currently are public shouldn't be anymore on
-Android, and should be then restricted.
+Android, and should be then restricted. Granted, this is easy to say,
+since it would require more parts of the Linux kernel to be rewritten
+for Android. For example, the MAC address of a wireless point is public,
+and while this isn't a big deal for a workstation it is quite
+problematic for a smartphone, possibly leading to guessing the location
+of the device knowing enough MAC addresses. Indeed, there are public
+databases of all MAC addresses, like the website WiGLE which publicly
+lists more than 500 million networks. Other example, the `ps` command
+will clearly show what app is being used, which can again give
+informations about someone's behavour. But yes, apps should have a
+different set of Linux permissions.
 
 It could be argued that the list of all applications could also be set
 to private at the Android API level, although it would definitely break
-some legitimate use case since this isn't a niche feature. The ability
-to execute system commands like `ls` or `cat` through
-`Runtime.getRuntime().exec` should however be completely removed, as it
-is a pretty big possible vulnerability vector.
+some legitimate use case since this isn't a niche feature but a fairly
+common one. Otherwise, apps could set themselves to "private", so
+regular apps like social networks or games would still be listed but not
+more critical ones.
+
+The ability to execute system commands like `ls` or `cat` through
+`Runtime.getRuntime().exec` should be completely removed, as it is
+possibly a pretty big vulnerability vector.
+
+For information related to usage and packets amount send / received, an
+approximation could be given to avoid detecting patterns through time.
 
 ## 3.2 - Against data leak: part 2
 
@@ -211,7 +246,8 @@ low data, ie the data use would be severely restricted. Some tools exist
 in "regular" Java, like Jif, or in other languages (JSFlow, LIO, etc),
 and some are specially for Android, like TaintDroid, an architecture
 within Android working alongside the Dalvik virtual machine to implement
-a "taint map" at the memory level.
+a "taint map" at the memory level. This however obviously requires a
+custom firmware, since it modifies the system at a low level.
 
 Related to this suggestion, critical informations related to banking or
 health for example should probably be locked behind a password, such
