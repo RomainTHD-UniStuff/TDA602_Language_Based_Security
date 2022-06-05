@@ -241,19 +241,6 @@ public class MainActivity extends AppCompatActivity implements ExfiltrateFragmen
         updateEmptyMessageVisibility();
     }
 
-    private static final String ALLOWED_CHARACTERS = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-    private static String getRandomString(final int size) {
-        final Random random = new Random();
-        final StringBuilder sb = new StringBuilder(size);
-        for (int i = 0; i < size; ++i) {
-            sb.append(ALLOWED_CHARACTERS.charAt(
-                random.nextInt(ALLOWED_CHARACTERS.length())
-            ));
-        }
-        return sb.toString();
-    }
-
     /**
      * This is an important part of the application!
      * How we read data from the system.
@@ -270,60 +257,76 @@ public class MainActivity extends AppCompatActivity implements ExfiltrateFragmen
             ));
         }
         try {
-            Process p = Runtime.getRuntime().exec("cat /proc/net/tcp");
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line;
-            while ((line = reader.readLine()) != null) {
-                mItemsData.add(new Item(
-                    "tcp",
-                    line
-                ));
-            }
+            StringBuilder content;
+            Process p;
+            BufferedReader reader;
 
+            content = new StringBuilder();
+            p = Runtime.getRuntime().exec("cat /proc/net/tcp");
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append("\n");
+            }
+            mItemsData.add(new Item(
+                "tcp",
+                content.toString()
+            ));
+
+            content = new StringBuilder();
             p = Runtime.getRuntime().exec("cat /proc/net/udp");
             reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((line = reader.readLine()) != null) {
-                mItemsData.add(new Item(
-                    "udp",
-                    line
-                ));
+                content.append(line).append("\n");
             }
+            mItemsData.add(new Item(
+                "udp",
+                content.toString()
+            ));
 
+            content = new StringBuilder();
             p = Runtime.getRuntime().exec("cat /proc/net/arp");
             reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((line = reader.readLine()) != null) {
-                mItemsData.add(new Item(
-                    "arp",
-                    line
-                ));
+                content.append(line).append("\n");
             }
+            mItemsData.add(new Item(
+                "arp",
+                content.toString()
+            ));
 
+            content = new StringBuilder();
             p = Runtime.getRuntime().exec("cat /proc/meminfo");
             reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((line = reader.readLine()) != null) {
-                mItemsData.add(new Item(
-                    "mem",
-                    line
-                ));
+                content.append(line).append("\n");
             }
+            mItemsData.add(new Item(
+                "mem",
+                content.toString()
+            ));
 
+            content = new StringBuilder();
             p = Runtime.getRuntime().exec("cat /proc/cpuinfo");
             reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((line = reader.readLine()) != null) {
-                mItemsData.add(new Item(
-                    "proc",
-                    line
-                ));
+                content.append(line).append("\n");
             }
+            mItemsData.add(new Item(
+                "proc",
+                content.toString()
+            ));
 
+            content = new StringBuilder();
             p = Runtime.getRuntime().exec("ps");
             reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
             while ((line = reader.readLine()) != null) {
-                mItemsData.add(new Item(
-                    "ps",
-                    line
-                ));
+                content.append(line).append("\n");
             }
+            mItemsData.add(new Item(
+                "ps",
+                content.toString()
+            ));
         } catch (IOException e) {
             Toast.makeText(
                 getApplicationContext(),

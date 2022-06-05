@@ -23,7 +23,12 @@ device model, or some network informations. Some of these files and
 directories are `/sys/class/net/`, `/proc/net/tpc`, `/proc/net/arp`,
 `/proc/cpuinfo`, `/proc/meminfo`, etc. These files are accessible by
 anyone due to the nature of Android, being based on a Linux kernel.
-Finally, commands like `ps` can expose running tasks.
+Finally, commands like `ps` can expose running tasks. The audio manager
+can also leak some critical information with the right method, which is
+the position and the driving route of the user. Finally, the data usage
+of apps can also be used, which can hint with some external informations
+about the user profile on a social network like Facebook, where the
+frequency (or lack) of published posts can show some user pattern.
 
 On android and iOS, apps are sandboxed and heavily restricted, as
 opposed to desktop apps. If an app wants to access a private resource
@@ -83,6 +88,12 @@ if (intent.resolveActivity(getPackageManager()) != null) {
 The database's content looks like, for example:
 
 ![Database content](./assets/database_content_p1.png)
+
+![Database element content](./assets/database_element_content_p1.png)
+
+And the server receives:
+
+![Server](./assets/server_p1.png)
 
 # 2 - Malicious intents
 
@@ -178,9 +189,11 @@ Some Linux files that currently are public shouldn't be anymore on
 Android, and should be then restricted.
 
 It could be argued that the list of all applications could also be set
-to private at the Android API level, and the ability to execute system
-commands like `ls` or `cat` through `Runtime.getRuntime().exec`
-completely removed.
+to private at the Android API level, although it would definitely break
+some legitimate use case since this isn't a niche feature. The ability
+to execute system commands like `ls` or `cat` through
+`Runtime.getRuntime().exec` should however be completely removed, as it
+is a pretty big possible vulnerability vector.
 
 ## 3.2 - Against data leak: part 2
 
@@ -194,13 +207,11 @@ security lectures we had. A high (important) app would only be able to
 share its data to other high apps, and low apps would not be able to
 fetch this high data. Or, to continue with data tracking, low apps could
 be allowed as long as there isn't an information flow from high data to
-low data, ie the data use would be severely restricted. This is an
-interesting research topic, although currently there are no official
-support from Android. Still, some tools exist in "regular" Java, like
-Jif, or in other languages (JSFlow, LIO, etc), so an official
-implementation could come at some point with enough push from the
-community. The best implementation would probably to implement this at
-the kernel level, directly using memory mapping.
+low data, ie the data use would be severely restricted. Some tools exist
+in "regular" Java, like Jif, or in other languages (JSFlow, LIO, etc),
+and some are specially for Android, like TaintDroid, an architecture
+within Android working alongside the Dalvik virtual machine to implement
+a "taint map" at the memory level.
 
 Related to this suggestion, critical informations related to banking or
 health for example should probably be locked behind a password, such
